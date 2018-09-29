@@ -1,0 +1,72 @@
+<html>
+    <head>
+        <script src="https://cdn.socket.io/socket.io-1.4.5.js"></script>
+        <style>
+            .clickdiv{
+                width: 100%;
+                height: 200px;
+                background: #ababab;
+            }
+            .eventdiv{
+                float: left;
+                width: 49%;
+                height: auto;
+            }
+            .float-right{
+                float: right;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div class="eventdiv">
+            <div class="clickdiv">
+
+            </div>
+            <p> Click on Me </p>    
+        </div>
+        <div class="eventdiv float-right">
+            <h3>See Log list below</h3>
+            <hr>
+            <div>
+                <p>Logs:</p>
+                <div id="displayLogs">
+                    
+                </div>
+            </div>
+        </div>
+        
+    </body>
+    <script>
+
+        window.onload = ()=>{
+            var socket = io('http://localhost:8080');
+            var _div = document.getElementsByClassName('clickdiv');
+            _div.item(0).addEventListener('click', clickOnDiv)
+            function clickOnDiv(event){
+                var data = {
+                    event: "MouseEvent",
+                    shiftKey: event.shiftKey,
+                    x: event.x,
+                    y: event.y
+                }
+                socket.emit('logsmonitor', data);
+
+            }
+            socket.on('reciveLogs', (data)=>{
+                console.log(data, "****")
+                showLogs(data)
+            })
+
+            function showLogs(data){
+                let container = document.querySelector('#displayLogs');
+                let i = 0, element = "";
+                for(;i < data.length;i++){
+                    element += `<p>${data[i]}</p>`;
+                }
+                container.innerHTML = element
+            }
+
+        }        
+    </script>
+</html>
