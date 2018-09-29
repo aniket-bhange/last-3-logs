@@ -8,5 +8,6 @@ Nodejs: 8.12.0 or greater
 
 Installation
 
-run npm install \n
+run npm install
+
 npm start
