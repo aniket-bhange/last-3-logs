@@ -27,7 +27,7 @@ module.exports = class Logger{
         }
 
         if(process.platform == 'linux') {
-            query = "tailf -3 " + this.location + this.filename
+            query = "tail -3 " + this.location + this.filename
         }
         return new Promise((resolve, reject)=>{
             exec(query, (err, stdout, stderr)=>{
