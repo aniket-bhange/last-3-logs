@@ -9,11 +9,6 @@ logger = new Logger({
 })
 app.listen(8080, ()=> { console.log("server started") });
 
-var ErrorResponse = (error, response)=>{
-    response.writeHead(500)
-    response.end("Sorry check with addmin for error")
-}
-
 var SuccessResponse = (res, options)=>{
     res.writeHead(options.status, {"Context-Type": options.contentType})
     res.end(options.data)
@@ -21,15 +16,13 @@ var SuccessResponse = (res, options)=>{
 
 
 function ServerHandler(req, res){
-    console.log(req.url)    
     let filepath = req.url;
     if(filepath == "/"){
         filepath = "/views/index.html";
     }
-    console.log(filepath)
+
     let extension = path.extname(filepath);
     let extname = String(extension).toLowerCase();
-    console.log(extname)
     let mimeTypes = {
         '.html': 'text/html',
         '.js': 'text/javascript',
@@ -37,14 +30,12 @@ function ServerHandler(req, res){
     };
     let contentType = mimeTypes[extname] || "application/octet-stream";
 
-    console.log(contentType)
-
-    if(contentType == "application/octet-stream"){
-        
-    } else {
-        let data = fs.readFileSync(__dirname + filepath);
-        console.log(data)
-        SuccessResponse(res, {contentType, data, status: 200})
+    if(contentType !== "application/octet-stream"){
+        fs.readFile(__dirname + filepath, (err, data)=>{
+            if(!err){
+                SuccessResponse(res, {contentType, data, status: 200})
+            }
+        });
     }
     
 }
@@ -61,7 +52,6 @@ async function logOps(){
 
 io.on('connection', async function (socket) {
     socket.on('logsmonitor', async function (data) {
-        console.log(data);
         logger.log(data)
         socket.emit('reciveLogs', await logOps())
     });

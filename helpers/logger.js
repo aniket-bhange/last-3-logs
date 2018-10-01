@@ -1,4 +1,7 @@
 const fs = require('fs')
+const sys = require('util')
+const exec = require('child_process').exec;
+
 module.exports = class Logger{
     constructor(options){
         this.location = options.location || "./";
@@ -17,29 +20,26 @@ module.exports = class Logger{
         if(!this.isFilePresent()){
             return Promise.reject({msg: "file is not present"});
         }
+        console.log(process.platform)
+        let query = "";
+        if(process.platform == 'win32') {
+            query = "powershell Get-Content -Tail 3 " + this.location + this.filename
+        }
 
-        return new Promise((resolve, reject)=>{  
-            let stream = fs.createReadStream(this.location + this.filename, this.fileOptions)
-            let data = "";
-            let lines = [];
-            stream.on("data", (moredata)=>{
-                data += moredata;
-                lines = data.split("\n");
-                if(lines.length > 1){
-                    stream.destroy()
-                    lines.pop()
-                    if(this.lineCount < lines.length) {
-                        lines = lines.slice(lines.length - this.lineCount, lines.length);
-                    }
-                    resolve(lines)
+        if(process.platform == 'linux') {
+            query = "tailf -3 " + this.location + this.filename
+        }
+        return new Promise((resolve, reject)=>{
+            exec(query, (err, stdout, stderr)=>{
+                if(err || stderr) {
+                    return reject(err || stderr)
                 }
-            })
-
-            stream.on("error", ()=> reject("error"))
-            stream.on("end", ()=> { 
+                let lines = stdout.split(/\r?\n/);
+                lines.pop()
                 resolve(lines)
-            })
-        });
+            });
+        })
+        
     }
 
     isFilePresent(){
